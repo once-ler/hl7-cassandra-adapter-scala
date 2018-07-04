@@ -57,8 +57,6 @@ trait WithHapiToCaPatientFlowTrait {
   }
 
   val persist = Flow[Option[CaPatient]].map {
-    import com.eztier.hl7mock.CaPatientImplicits._
-
     a =>
       a match {
         case Some(o) =>
