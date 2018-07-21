@@ -1,14 +1,14 @@
 package com.eztier.stream
 
 import java.util.Date
-import org.joda.time.DateTime
-import scala.concurrent.Await
-import scala.concurrent.duration._
 
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import org.joda.time.DateTime
+
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import com.datastax.driver.core.Row
 import com.datastax.driver.core.querybuilder.Insert
-
 import com.eztier.cassandra.CaCommon.camelToUnderscores
 import com.eztier.cassandra.CaCustomCodecProvider
 import com.eztier.hl7mock.Hapi.parseMessage
@@ -32,16 +32,20 @@ trait WithHapiToCaPatientFlowTrait {
       Await.result(f, 30 second)
   }
 
+  def tryParseHl7Message(msg: String) = {
+    val m = parseMessage(msg)
+    m match {
+      case Some(a) =>
+        val c: CaPatient = a
+        Some(c)
+      case _ => None
+    }
+  }
+
   val transformHl7MessageToCaPatient = Flow[Row].map {
     a =>
       val msg = a.getString("message")
-      val m = parseMessage(msg)
-      m match {
-        case Some(a) =>
-          val c: CaPatient = a
-          Some(c)
-        case _ => None
-      }
+      tryParseHl7Message(msg)
   }
 
   def writeToDest(a: (CaPatient, CaPatientControl)) = {
@@ -66,8 +70,10 @@ trait WithHapiToCaPatientFlowTrait {
       }
   }
 
+  def sumSink: Sink[Int, Future[Int]] = Sink.fold[Int, Int](0)(_ + _)
+
   def updateDateControl(tbl: String) = Flow[Seq[Date]]
-    .map {
+    .mapAsync(1) {
       a =>
         val uts = a.max
         val c3 = CaTableDateControl(
@@ -78,8 +84,8 @@ trait WithHapiToCaPatientFlowTrait {
 
         val f = Source[Insert](List(ins3))
           .via(provider.getInsertFlow())
-          .runWith(Sink.ignore)
-
-        Await.ready(f, 30 second)
+          .map(_ => 1)
+          .toMat(sumSink)(Keep.right)
+          .run()
     }
 }
