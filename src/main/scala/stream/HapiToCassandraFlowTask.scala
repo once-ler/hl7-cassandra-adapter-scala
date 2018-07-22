@@ -2,7 +2,7 @@ package com.eztier.stream
 
 import akka.NotUsed
 import akka.stream.SourceShape
-import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Sink, Source}
+import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Source}
 import com.datastax.driver.core.Row
 
 import scala.concurrent.Await
@@ -45,8 +45,12 @@ case class HapiToCassandraFlowTask(provider: CaCustomCodecProvider, keySpace: St
     val g = GraphDSL.create() { implicit b =>
       import GraphDSL.Implicits._
 
-      val f = Flow[String].map { tryParseHl7Message(_) }
-      s.via(f).shape
+      val src = b.add(s)
+      val convertHl7ToCaPatient = b.add(Flow[String].map { tryParseHl7Message(_) })
+
+      src ~> convertHl7ToCaPatient
+
+      SourceShape(convertHl7ToCaPatient.out)
     }
 
     val sr = Source.fromGraph(g)
@@ -57,10 +61,13 @@ case class HapiToCassandraFlowTask(provider: CaCustomCodecProvider, keySpace: St
     val g = GraphDSL.create() { implicit b =>
       import GraphDSL.Implicits._
 
-      s
-        .via(getLatestHl7Message)
-        .via(balancer(transformHl7MessageToCaPatient, workerCount))
-        .shape
+      val src = b.add(s)
+      val getLastestHl7 = b.add(getLatestHl7Message)
+      val convertHl7ToCaPatient = b.add(balancer(transformHl7MessageToCaPatient, workerCount))
+
+      src ~> getLastestHl7 ~> convertHl7ToCaPatient
+
+      SourceShape(convertHl7ToCaPatient.out)
     }
 
     val sr = Source.fromGraph(g)
@@ -68,7 +75,7 @@ case class HapiToCassandraFlowTask(provider: CaCustomCodecProvider, keySpace: St
   }
 
   def runWithRowFilter(filter: String = "limit 1", workerCount: Int = 10) = {
-    val s = casFlow.getSourceStream(s"select id from ${keySpace}.ca_hl_7_control ${filter} allow filtering", 100)
+    val s = casFlow.getSourceStream(s"select id from ${keySpace}.ca_hl_7_control where ${filter} allow filtering", 100)
 
     runWithRowSource(s, workerCount)
   }

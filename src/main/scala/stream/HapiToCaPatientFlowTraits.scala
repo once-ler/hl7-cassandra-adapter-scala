@@ -2,6 +2,8 @@ package com.eztier.stream
 
 import java.util.Date
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import org.joda.time.DateTime
 
 import scala.concurrent.{Await, Future}
@@ -18,6 +20,12 @@ trait WithHapiToCaPatientFlowTrait {
   import com.eztier.hl7mock.CaCommonImplicits._
   import com.eztier.hl7mock.CaPatientImplicits._
   import com.eztier.hl7mock.HapiToCaPatientImplicits._
+
+  // akka
+  implicit val system = ActorSystem("Sys")
+  implicit val ec = system.dispatcher
+  implicit val materializer = ActorMaterializer()
+  implicit val logger = system.log
 
   implicit val provider: CaCustomCodecProvider
   implicit val casFlow: CassandraStreamFlowTask
@@ -82,7 +90,7 @@ trait WithHapiToCaPatientFlowTrait {
         )
         val ins3 = c3 getInsertStatement(keySpace)
 
-        val f = Source[Insert](List(ins3))
+        Source[Insert](List(ins3))
           .via(provider.getInsertFlow())
           .map(_ => 1)
           .toMat(sumSink)(Keep.right)
