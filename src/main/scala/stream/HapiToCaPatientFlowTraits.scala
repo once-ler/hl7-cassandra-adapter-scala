@@ -59,12 +59,11 @@ trait WithHapiToCaPatientFlowTrait {
   def writeToDest(a: (CaPatient, CaPatientControl)) = {
     val ins1 = a._1 getInsertStatement(keySpace)
     val ins2 = a._2 getInsertStatement(keySpace)
-
     val f = Source[Insert](List(ins1, ins2))
       .via(provider.getInsertFlow())
       .runWith(Sink.ignore)
-
-    Await.ready(f, 30 second)
+    logger.error(ins1.toString)
+    Await.ready(f, 120 second)
     a._1.CreateDate
   }
 
@@ -92,7 +91,7 @@ trait WithHapiToCaPatientFlowTrait {
 
         Source[Insert](List(ins3))
           .via(provider.getInsertFlow())
-          .map(_ => 1)
+          .map(_ => a.length)
           .toMat(sumSink)(Keep.right)
           .run()
     }

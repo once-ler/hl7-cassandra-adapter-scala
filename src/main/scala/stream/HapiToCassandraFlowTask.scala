@@ -2,7 +2,7 @@ package com.eztier.stream
 
 import akka.NotUsed
 import akka.stream.SourceShape
-import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Source}
+import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Sink, Source}
 import com.datastax.driver.core.Row
 
 import scala.concurrent.Await
@@ -35,7 +35,7 @@ case class HapiToCassandraFlowTask(provider: CaCustomCodecProvider, keySpace: St
       .via(balancer(persist, workerCount))
       .grouped(100000)
       .via(updateDateControl("CaPatientControl"))
-      .toMat(sumSink)(Keep.right)
+      .toMat(Sink.head)(Keep.right)
       .run()
 
     Await.result(f, Duration.Inf)
@@ -74,7 +74,7 @@ case class HapiToCassandraFlowTask(provider: CaCustomCodecProvider, keySpace: St
     persistToCassandra(sr, workerCount)
   }
 
-  def runWithRowFilter(filter: String = "limit 1", workerCount: Int = 10) = {
+  def runWithRowFilter(filter: String = "1 = 1 limit 1", workerCount: Int = 10) = {
     val s = casFlow.getSourceStream(s"select id from ${keySpace}.ca_hl_7_control where ${filter} allow filtering", 100)
 
     runWithRowSource(s, workerCount)
