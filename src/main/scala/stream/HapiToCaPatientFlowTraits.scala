@@ -62,7 +62,7 @@ trait WithHapiToCaPatientFlowTrait {
     val f = Source[Insert](List(ins1, ins2))
       .via(provider.getInsertFlow())
       .runWith(Sink.ignore)
-    logger.error(ins1.toString)
+
     Await.ready(f, 120 second)
     a._1.CreateDate
   }
