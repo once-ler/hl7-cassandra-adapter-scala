@@ -7,11 +7,39 @@ import com.datastax.driver.core.Row
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.reflect.runtime.universe.{Type, TypeTag, typeOf}
 import com.eztier.cassandra.CaCustomCodecProvider
-import com.eztier.hl7mock.CaPatientImplicits
 import com.eztier.hl7mock.types._
 import com.eztier.stream.CommonTask.balancer
+import com.eztier.stream.traits._
+import com.eztier.hl7mock.{CaPatientImplicits, CaToCaControl, CaInsertStatement, MessageTo}
 
+case class HapiToCaPatientFlowTask(provider: CaCustomCodecProvider, keySpace: String = "dwh") extends WithCassandraPersistence {
+  // Must register UDT's
+  implicit val userImplicits = CaPatientImplicits
+
+  provider.register[CaPatientPhoneInfo]
+    .register[CaPatientEmailInfo]
+    .register[CaPatientIdType]
+    .register[CaPatientNameComponents]
+    .register[CaPatientAddress]
+    .register[CaPatientCareTeamMember]
+    .register[CaPatientEmergencyContact]
+    .register[CaPatientEmploymentInformation]
+
+  // alpakka source
+  implicit val casFlow = CassandraStreamFlowTask(provider)
+
+  // Decoders
+  implicit val caPatientToCaPatientControl = CaToCaControl.CaPatientToCaPatientControl
+  implicit val caMessageToCaPatient = MessageTo.MessageToCaPatient
+
+  // Encoders
+  implicit val caPatientInsertStatement = CaInsertStatement.CaPatientInsertStatement
+  implicit val caPatientControlInsertStatement = CaInsertStatement.CaPatientControlInsertStatement
+}
+
+/*
 case class HapiToCassandraFlowTask(provider: CaCustomCodecProvider, keySpace: String = "dwh") extends WithHapiToCaPatientFlowTrait {
   // Must register UDT's
   implicit val userImplicits = CaPatientImplicits
@@ -35,7 +63,8 @@ case class HapiToCassandraFlowTask(provider: CaCustomCodecProvider, keySpace: St
       .via(balancer(persist, workerCount))
       .grouped(100000)
       .via(updateDateControl("CaPatientControl"))
-      .toMat(Sink.head)(Keep.right)
+      // .toMat(Sink.head)(Keep.right)
+      .toMat(sumSink)(Keep.right)
       .run()
 
     Await.result(f, Duration.Inf)
@@ -80,3 +109,4 @@ case class HapiToCassandraFlowTask(provider: CaCustomCodecProvider, keySpace: St
     runWithRowSource(s, workerCount)
   }
 }
+*/

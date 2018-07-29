@@ -2,9 +2,9 @@ package com.eztier.test.hl7
 
 import java.text.SimpleDateFormat
 import java.util.Date
+
 import org.joda.time.DateTime
 import org.scalatest.{FunSpec, Matchers}
-
 import ca.uhn.hl7v2.model.Message
 import ca.uhn.hl7v2.{DefaultHapiContext, HL7Exception}
 import ca.uhn.hl7v2.model.v231.datatype.{CE, TS, XPN}
@@ -12,7 +12,6 @@ import ca.uhn.hl7v2.model.v231.segment.{NK1, PID}
 import ca.uhn.hl7v2.parser.{CanonicalModelClassFactory, EncodingNotSupportedException}
 import ca.uhn.hl7v2.util.Terser
 import ca.uhn.hl7v2.validation.impl.NoValidation
-
 import com.eztier.hl7mock.types.{CaPatientEmergencyContact, CaPatientIdType, CaPatientNameComponents, CaPatientPhoneInfo}
 
 class TestHL7Spec extends FunSpec with Matchers {

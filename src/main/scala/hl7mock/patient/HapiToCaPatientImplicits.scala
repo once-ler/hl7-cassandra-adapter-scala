@@ -5,8 +5,8 @@ import java.util.Date
 import ca.uhn.hl7v2.model.Message
 import ca.uhn.hl7v2.model.v231.datatype.{CX, XPN}
 import ca.uhn.hl7v2.model.v231.segment.PID
-import com.eztier.hl7mock.types._
 import com.eztier.hl7mock.HapiToCaHl7Implicits._
+import com.eztier.hl7mock.types._
 
 object HapiToCaPatientImplicits {
   implicit def fromMessageToCaPatient(in: Message): CaPatient = {

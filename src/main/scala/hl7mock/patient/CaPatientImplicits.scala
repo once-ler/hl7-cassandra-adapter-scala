@@ -1,16 +1,13 @@
 package com.eztier.hl7mock
 
-import java.util.Date
-
-import com.datastax.driver.core.querybuilder.{Insert, QueryBuilder}
+import com.datastax.driver.core._
+import com.eztier.cassandra.CaCommon.{camelToUnderscores, getFieldNames}
+import com.eztier.cassandra._
+import com.eztier.hl7mock.types.{_}
+import com.google.common.reflect.TypeToken
 
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe._
-import com.datastax.driver.core._
-import com.google.common.reflect.TypeToken
-import com.eztier.cassandra.CaCommon.{camelToUnderscores, getFieldNames}
-import com.eztier.cassandra._
-import com.eztier.hl7mock.types.{CaPatient, _}
 
 // Define object that extends CassandraCustomCodecImplicits.  This will implicitly be imported.
 object CaPatientImplicits extends CaCustomCodecImplicits {

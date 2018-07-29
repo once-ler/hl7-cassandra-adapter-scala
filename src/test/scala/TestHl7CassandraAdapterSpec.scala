@@ -5,9 +5,9 @@ import akka.stream.ActorMaterializer
 import com.datastax.driver.core._
 import org.scalatest.{Matchers, fixture}
 
-import scala.concurrent.{Await}
+import scala.concurrent.Await
 import com.eztier.cassandra.CaCustomCodecProvider
-import com.eztier.cassandra.CaCommon.{camelToUnderscores}
+import com.eztier.cassandra.CaCommon.camelToUnderscores
 import com.eztier.hl7mock.CaPatientImplicits
 import com.eztier.hl7mock.types._
 

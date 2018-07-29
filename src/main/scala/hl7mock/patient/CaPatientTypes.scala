@@ -1,9 +1,10 @@
 package com.eztier.hl7mock.types
 
-import java.text.SimpleDateFormat
+// import java.text.SimpleDateFormat
 import java.util.Date
 
 import com.eztier.cassandra.{CaTbl, CaUdt}
+import com.eztier.hl7mock.{CaBase, CaControl}
 import org.joda.time.DateTime
 
 case class CaPatientPhoneInfo (
@@ -94,7 +95,7 @@ case class CaPatient(
   Race: Seq[String] = Seq(),
   Rank: String = "",
   Status: String = ""
-) extends CaTbl
+) extends CaTbl with CaBase
 
 case class CaPatientControl(
   CreateDate: Date = new Date(),
@@ -111,5 +112,5 @@ case class CaPatientControl(
   Race: String = "",
   StateProvince: String = "",
   Street: String = ""
-) extends CaTbl
+) extends CaTbl with CaControl
 
