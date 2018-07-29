@@ -11,7 +11,6 @@ import com.datastax.driver.core.Row
 import com.datastax.driver.core.querybuilder.Insert
 import com.eztier.cassandra.CaCommon.camelToUnderscores
 import com.eztier.cassandra.{CaCustomCodecProvider}
-import com.eztier.hl7mock._
 import com.eztier.hl7mock.Hapi.parseMessage
 import com.eztier.hl7mock.types._
 import com.eztier.stream.CassandraStreamFlowTask
@@ -20,8 +19,8 @@ import org.joda.time.DateTime
 trait WithHapiToCassandraFlowTrait {
   // For CaTableDateControl
   import com.eztier.hl7mock.CaCommonImplicits._
-  // import com.eztier.hl7mock.HapiToCaPatientImplicits._
-  // import com.eztier.hl7mock.CaPatientImplicits._
+  // Type-class implicits
+  import com.eztier.hl7mock._
 
   // akka
   implicit val system = ActorSystem("Sys")
@@ -58,15 +57,11 @@ trait WithHapiToCassandraFlowTrait {
       tryParseHl7Message[T](msg)
   }
 
-  // def tryGetInsertStatement[A](a: A)(implicit insertStatementConverter: CaInsertStatement[A]): WithInsertStatement = insertStatementConverter.encode(a)
-
   def writeToDest[A <: CaBase, B <: CaControl](a: (A, B))
   (implicit caToCaControlConverter: CaToCaControl[A, B], baseConverter: CaInsertStatement[A], controlConverter: CaInsertStatement[B]) = {
     val a1 = baseConverter.encode(a._1)
     val a2 = controlConverter.encode(a._2)
 
-    // val ins1 = a._1 getInsertStatement(keySpace)
-    // val ins2 = a._2 getInsertStatement(keySpace)
     val ins1 = a1 getInsertStatement(keySpace)
     val ins2 = a2 getInsertStatement(keySpace)
     val f = Source[Insert](List(ins1, ins2))

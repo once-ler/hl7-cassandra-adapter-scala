@@ -4,7 +4,6 @@ import akka.NotUsed
 import akka.stream.SourceShape
 import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Source}
 import com.datastax.driver.core.Row
-import com.eztier.hl7mock._
 import com.eztier.stream.CommonTask.balancer
 
 import scala.concurrent.Await
@@ -12,6 +11,8 @@ import scala.concurrent.duration.Duration
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 trait WithCassandraPersistence extends WithHapiToCassandraFlowTrait {
+  // Type-class implicits
+  import com.eztier.hl7mock._
 
   def persistToCassandra[A <: CaBase, B <: CaControl](s: Source[Option[A], NotUsed], workerCount: Int = 10)
   (implicit caToCaControlConverter: CaToCaControl[A, B], baseConverter: CaInsertStatement[A], controlConverter: CaInsertStatement[B], typeTag: TypeTag[B]) = {
