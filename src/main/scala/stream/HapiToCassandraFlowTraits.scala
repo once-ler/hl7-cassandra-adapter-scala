@@ -10,13 +10,14 @@ import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import com.datastax.driver.core.Row
 import com.datastax.driver.core.querybuilder.Insert
 import com.eztier.cassandra.CaCommon.camelToUnderscores
-import com.eztier.cassandra.{CaCustomCodecProvider}
+import com.eztier.cassandra.CaCustomCodecProvider
+import com.eztier.hl7mock.{CaBase, CaControl}
 import com.eztier.hl7mock.Hapi.parseMessage
 import com.eztier.hl7mock.types._
 import com.eztier.stream.CassandraStreamFlowTask
 import org.joda.time.DateTime
 
-trait WithHapiToCassandraFlowTrait {
+trait WithHapiToCassandraFlowTrait[A <: CaBase, B <: CaControl] {
   // For CaTableDateControl
   import com.eztier.hl7mock.CaCommonImplicits._
   // Type-class implicits
@@ -41,23 +42,23 @@ trait WithHapiToCassandraFlowTrait {
       Await.result(f, 30 second)
   }
 
-  def tryParseHl7Message[T](msg: String)(implicit converter: MessageTo[T]): Option[T] = {
+  def tryParseHl7Message(msg: String)(implicit converter: MessageTo[A]): Option[A] = {
     val m = parseMessage(msg)
     m match {
       case Some(a) =>
-        val c: T = converter.decode(a)
+        val c: A = converter.decode(a)
         Some(c)
       case _ => None
     }
   }
 
-  def transformHl7MessageToCaType[T <: CaBase](implicit messageToConverter: MessageTo[T]) = Flow[Row].map {
+  def transformHl7MessageToCaType(implicit messageToConverter: MessageTo[A]) = Flow[Row].map {
     a =>
       val msg = a.getString("message")
-      tryParseHl7Message[T](msg)
+      tryParseHl7Message(msg)
   }
 
-  def writeToDest[A <: CaBase, B <: CaControl](a: (A, B))
+  def writeToDest(a: (A, B))
   (implicit caToCaControlConverter: CaToCaControl[A, B], baseConverter: CaInsertStatement[A], controlConverter: CaInsertStatement[B]) = {
     val a1 = baseConverter.encode(a._1)
     val a2 = controlConverter.encode(a._2)
@@ -72,7 +73,7 @@ trait WithHapiToCassandraFlowTrait {
     a._1.CreateDate
   }
 
-  def persist[A <: CaBase, B <: CaControl]
+  def persist
   (implicit caToCaControlConverter: CaToCaControl[A, B], baseConverter: CaInsertStatement[A], controlConverter: CaInsertStatement[B]) = Flow[Option[A]].map {
       a =>
         a match {
