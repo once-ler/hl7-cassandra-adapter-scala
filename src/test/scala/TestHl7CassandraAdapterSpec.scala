@@ -3,6 +3,7 @@ package com.eztier.test.cassandra
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.datastax.driver.core._
+import com.eztier.adapter.Hl7CassandraAdapter
 import org.scalatest.{Matchers, fixture}
 
 import scala.concurrent.Await
@@ -100,6 +101,19 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
           val stmt0 = new SimpleStatement(insertStatement.toString)
 
           println("Done")
+      }
+  }
+
+  it("Should create adapter and can process Hl7 messages and persist to Cassandra") {
+    () =>
+      withSearchCriteria {
+        cri =>
+
+          val adapter = Hl7CassandraAdapter[CaPatient, CaPatientControl]("production.cassandra", "dwh")
+
+          val res = adapter.flow.runWithRowFilter("create_date > '2018-07-26 15:00:00' limit 10", 10)
+
+          println(res)
       }
   }
 }
