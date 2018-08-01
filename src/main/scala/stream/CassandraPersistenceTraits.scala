@@ -10,7 +10,7 @@ import com.eztier.hl7mock.{CaBase, CaControl}
 import com.eztier.stream.CommonTask.balancer
 import com.sun.corba.se.impl.orbutil.graph.Graph
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
@@ -34,21 +34,18 @@ trait WithCassandraPersistence[A <: CaBase, B <: CaControl] extends WithHapiToCa
     }
   }
 
-  def persistToCassandraFrom(s: Source[Option[A], NotUsed], workerCount: Int = 10)
-  (implicit caToCaControlConverter: CaToCaControl[A, B], baseConverter: CaInsertStatement[A], controlConverter: CaInsertStatement[B], typeTag: TypeTag[B]) = {
+  def persistToCassandraAsync(s: Source[Option[A], NotUsed], workerCount: Int = 10)
+  (implicit caToCaControlConverter: CaToCaControl[A, B], baseConverter: CaInsertStatement[A], controlConverter: CaInsertStatement[B], typeTag: TypeTag[B]): Future[Int] = {
     val persistence = Flow.fromGraph(persistToCassandraStage(workerCount))
 
-    val g = s.via(persistence).toMat(sumSink)(Keep.right)
-  }
-
-  def persistToCassandra(s: Source[Option[A], NotUsed], workerCount: Int = 10)
-  (implicit caToCaControlConverter: CaToCaControl[A, B], baseConverter: CaInsertStatement[A], controlConverter: CaInsertStatement[B], typeTag: TypeTag[B]) = {
-    val f = s
-      .via(balancer(persist, workerCount))
-      .grouped(100000)
-      .via(updateDateControl(typeOf[B].typeSymbol.name.toString))
+    s.via(persistence)
       .toMat(sumSink)(Keep.right)
       .run()
+  }
+
+  def persistToCassandraSync(s: Source[Option[A], NotUsed], workerCount: Int = 10)
+  (implicit caToCaControlConverter: CaToCaControl[A, B], baseConverter: CaInsertStatement[A], controlConverter: CaInsertStatement[B], typeTag: TypeTag[B]): Int = {
+    val f = persistToCassandraAsync(s, workerCount)
 
     Await.result(f, Duration.Inf)
   }
@@ -67,7 +64,7 @@ trait WithCassandraPersistence[A <: CaBase, B <: CaControl] extends WithHapiToCa
     }
 
     val sr = Source.fromGraph(g)
-    persistToCassandra(sr, workerCount)
+    persistToCassandraAsync(sr, workerCount)
   }
 
   def runWithRowSource(s: Source[Row, NotUsed], workerCount: Int = 10)
@@ -85,7 +82,7 @@ trait WithCassandraPersistence[A <: CaBase, B <: CaControl] extends WithHapiToCa
     }
 
     val sr = Source.fromGraph(g)
-    persistToCassandra(sr, workerCount)
+    persistToCassandraSync(sr, workerCount)
   }
 
   def runWithRowFilter(filter: String = "", workerCount: Int = 10)(
