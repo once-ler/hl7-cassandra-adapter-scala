@@ -7,9 +7,9 @@ import com.eztier.hl7mock.{CaBase, CaControl, CaRegisterUdt}
 import com.eztier.stream.HapiToCassandraFlowTask
 
 class Hl7CassandraAdapter[A <: CaBase, B <: CaControl](provider: CaCustomCodecProvider, keySpace: String)
-                                                      (implicit registrar: CaRegisterUdt[A, B]){
+  (implicit registrar: CaRegisterUdt[A, B]){
 
-  val flow = HapiToCassandraFlowTask[A, B](provider, keySpace)
+    val flow = HapiToCassandraFlowTask[A, B](provider, keySpace)
 
 }
 

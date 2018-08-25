@@ -28,7 +28,7 @@ lazy val commonSettings = Seq(
 
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5" % Test
 val hapiV231 = "ca.uhn.hapi" % "hapi-structures-v231" % "2.3"
-val cassandraUdtCodecHelper = "com.eztier" %% "cassandra-udt-codec-helper-scala" % "0.2.17"
+val cassandraUdtCodecHelper = "com.eztier" %% "cassandra-udt-codec-helper-scala" % "0.2.18"
 
 lazy val root = (project in file(".")).
   settings(commonSettings: _*).
