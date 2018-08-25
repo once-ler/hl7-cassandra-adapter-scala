@@ -6,10 +6,10 @@ import com.datastax.driver.core._
 import com.eztier.adapter.Hl7CassandraAdapter
 import org.scalatest.{Matchers, fixture}
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, ExecutionContext}
 import com.eztier.cassandra.CaCustomCodecProvider
 import com.eztier.cassandra.CaCommon.camelToUnderscores
-import com.eztier.hl7mock.CaPatientImplicits
+import com.eztier.hl7mock.{CaBase, CaControl, CaCreateTypes, CaPatientImplicits}
 import com.eztier.hl7mock.types._
 
 class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fixture.ConfigMapFixture {
@@ -101,6 +101,30 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
           val stmt0 = new SimpleStatement(insertStatement.toString)
 
           println("Done")
+      }
+  }
+
+  it("Should create UDT's and tables if necessary") {
+
+    () =>
+      import com.eztier.hl7mock.CaCreateTypes._
+
+      object CreatorUtil {
+        def create[A <: CaBase, B <: CaControl](provider: CaCustomCodecProvider)(implicit creator: CaCreateTypes[A, B]) = {
+          creator.create(provider)
+        }
+      }
+
+      withSearchCriteria {
+        cri =>
+          // Make sure the keyspace defined is actually created in cassandra.
+          // create keyspace if not exists dwh with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+          val provider = CaCustomCodecProvider("development.cassandra")
+
+          val either = CreatorUtil.create[CaPatient, CaPatientControl](provider)
+
+          // Expect Right(ResultSet[ exhausted: true, Columns[]])
+          either should be('right)
       }
   }
 
