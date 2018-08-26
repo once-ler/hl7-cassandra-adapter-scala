@@ -121,10 +121,14 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
           // create keyspace if not exists dwh with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
           val provider = CaCustomCodecProvider("development.cassandra")
 
-          val either = CreatorUtil.create[CaPatient, CaPatientControl](provider)
+          val either = CreatorUtil.create[CaHl7, CaHl7Control](provider)
+
+          either should be ('right)
+
+          val either1 = CreatorUtil.create[CaPatient, CaPatientControl](provider)
 
           // Expect Right(ResultSet[ exhausted: true, Columns[]])
-          either should be('right)
+          either1 should be ('right)
       }
   }
 

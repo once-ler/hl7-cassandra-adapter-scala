@@ -14,7 +14,7 @@ lazy val compilerOptions = Seq(
 )
 
 lazy val commonSettings = Seq(
-  version := "0.3.6",
+  version := "0.3.7",
   organization := "com.eztier",
   name := "hl7-cassandra-adapter-scala",
   scalaVersion := "2.12.4",

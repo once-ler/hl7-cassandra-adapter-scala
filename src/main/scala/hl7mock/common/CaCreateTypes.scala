@@ -16,9 +16,38 @@ trait CaCreateTypes[A <: CaBase, B <: CaControl] {
 
   // Create the UDTs and Tables before handing over to the registrar.
   def create(provider: CaCustomCodecProvider)(implicit logger: LoggingAdapter, ec: ExecutionContextExecutor, mat: ActorMaterializer): Either[Exception, Seq[ResultSet]]
+
+  def persist(provider: CaCustomCodecProvider, l: List[String])(implicit logger: LoggingAdapter, ec: ExecutionContextExecutor, mat: ActorMaterializer) = {
+    val t = Source(l)
+      .mapAsync(1){
+        cql => provider.readAsync(new SimpleStatement(cql))
+      }
+      .log("CaCreateTypes")
+      .runWith(Sink.seq)
+      .map(Right.apply _)
+      .recover{
+        case e: Exception => logger.error(e.getMessage)
+          Left(e)
+      }
+
+    Await.result(t, 30 seconds)
+  }
+
 }
 
 object CaCreateTypes {
+  // CaHl7
+  implicit object CreateCaHl7 extends CaCreateTypes[CaHl7, CaHl7Control] {
+    override def create(provider: CaCustomCodecProvider)(implicit logger: LoggingAdapter, ec: ExecutionContextExecutor, mat: ActorMaterializer): Either[Exception, Seq[ResultSet]] = {
+      val l = {
+        getCreateStmt[CaHl7]("Id")("CreateDate", "MessageType", "ControlId")(Some("CreateDate"), Some(-1)) ++
+        getCreateStmt[CaHl7Control]("Id")()(None, None)
+      }.toList
+
+      persist(provider, l)
+    }
+  }
+
   // CaPatient
   implicit object CreateCaPatient extends CaCreateTypes[CaPatient, CaPatientControl] {
 
@@ -36,19 +65,7 @@ object CaCreateTypes {
         getCreateStmt[CaPatientControl]("Id")()(None, None)
       }.toList
 
-      val t = Source(l)
-        .mapAsync(1){
-          cql => provider.readAsync(new SimpleStatement(cql))
-        }
-        .log("CaCreateTypes")
-        .runWith(Sink.seq)
-        .map(Right.apply _)
-        .recover{
-          case e: Exception => logger.error(e.getMessage)
-          Left(e)
-        }
-
-      Await.result(t, 30 seconds)
+      persist(provider, l)
     }
 
   }
