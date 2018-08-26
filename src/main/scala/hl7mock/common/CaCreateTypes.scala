@@ -23,18 +23,18 @@ object CaCreateTypes {
   implicit object CreateCaPatient extends CaCreateTypes[CaPatient, CaPatientControl] {
 
     override def create(provider: CaCustomCodecProvider)(implicit logger: LoggingAdapter, ec: ExecutionContextExecutor, mat: ActorMaterializer): Either[Exception, Seq[ResultSet]] = {
-      val l = List(
-        getCreateStmt[CaPatientPhoneInfo],
-        getCreateStmt[CaPatientEmailInfo],
-        getCreateStmt[CaPatientIdType],
-        getCreateStmt[CaPatientNameComponents],
-        getCreateStmt[CaPatientAddress],
-        getCreateStmt[CaPatientCareTeamMember],
-        getCreateStmt[CaPatientEmergencyContact],
-        getCreateStmt[CaPatientEmploymentInformation],
-        getCreateStmt[CaPatient]("Id")("CreateDate")(Some("CreateDate"), Some(-1)),
+      val l = {
+        getCreateStmt[CaPatientPhoneInfo] ++
+        getCreateStmt[CaPatientEmailInfo] ++
+        getCreateStmt[CaPatientIdType] ++
+        getCreateStmt[CaPatientEmergencyContact] ++
+        getCreateStmt[CaPatientEmploymentInformation] ++
+        getCreateStmt[CaPatientNameComponents] ++
+        getCreateStmt[CaPatientAddress] ++
+        getCreateStmt[CaPatientCareTeamMember] ++
+        getCreateStmt[CaPatient]("Id")("CreateDate")(Some("CreateDate"), Some(-1)) ++
         getCreateStmt[CaPatientControl]("Id")()(None, None)
-      )
+      }.toList
 
       val t = Source(l)
         .mapAsync(1){
