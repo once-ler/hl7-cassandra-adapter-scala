@@ -42,6 +42,7 @@ object CaPatientImplicits extends CaCustomCodecImplicits {
         camelToUnderscores("EmergencyContacts") -> el.EmergencyContacts.asJava,
         camelToUnderscores("EmploymentInformation") -> el.EmploymentInformation,
         camelToUnderscores("Ethnicity") -> el.Ethnicity.asJava,
+        camelToUnderscores("Gender") -> el.Gender,
         camelToUnderscores("HistoricalIds") -> el.HistoricalIds.asJava,
         camelToUnderscores("HomeDeployment") -> el.HomeDeployment,
         camelToUnderscores("Id") -> el.Id,
@@ -53,7 +54,6 @@ object CaPatientImplicits extends CaCustomCodecImplicits {
         camelToUnderscores("NationalIdentifier") -> el.NationalIdentifier,
         camelToUnderscores("Race") -> el.Race.asJava,
         camelToUnderscores("Rank") -> el.Rank,
-        camelToUnderscores("Gender") -> el.Gender,
         camelToUnderscores("Status") -> el.Status
       )
     }
@@ -179,7 +179,7 @@ object CaPatientImplicits extends CaCustomCodecImplicits {
         el.MaritalStatus,
         el.Mrn,
         el.Name,
-        el.NameComponents,
+        el.NameComponents.asJava,
         el.NationalIdentifier,
         el.Race.asJava,
         el.Rank,

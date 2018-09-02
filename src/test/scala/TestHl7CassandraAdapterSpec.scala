@@ -7,6 +7,7 @@ import com.eztier.adapter.Hl7CassandraAdapter
 import org.scalatest.{Matchers, fixture}
 
 import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.duration._
 import com.eztier.cassandra.CaCustomCodecProvider
 import com.eztier.cassandra.CaCommon.camelToUnderscores
 import com.eztier.hl7mock.{CaBase, CaControl, CaCreateTypes, CaPatientImplicits}
@@ -54,6 +55,8 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
 
           println("Insert Statement")
 
+          /*
+          // TODO: Need to allow user to provide the bounded fields instead of automatically generating it in lexiconal order.
           // preparedStatement provided by user.
           implicit val session = provider.session
           val preparedStatement = getPreparedStatement("dwh", el)
@@ -67,10 +70,11 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
 
           println("Binder")
 
+          */
           val stmt1 = new SimpleStatement(s"select * from dwh.${camelToUnderscores(el.getClass.getSimpleName)}").setFetchSize(20)
 
           val fut = provider.readAsync(stmt1)
-          val rs = Await.result(fut, Duration.Inf)
+          val rs = Await.result(fut, 10 seconds)
 
           val row: Row = rs.one()
 
@@ -100,7 +104,7 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
           val qs = insertStatement.getQueryString()
           val stmt0 = new SimpleStatement(insertStatement.toString)
 
-          println("Done")
+          // "INSERT INTO dwh.ca_table_date_control (id,create_date) VALUES ('CaHl7Control',"
       }
   }
 
