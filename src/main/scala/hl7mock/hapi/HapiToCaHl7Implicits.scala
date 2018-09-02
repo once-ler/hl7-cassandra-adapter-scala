@@ -29,11 +29,4 @@ object HapiToCaHl7Implicits {
       ControlId = ct
     )
   }
-
-  implicit def fromCaHl7ToCaHl7Control(in: CaHl7) =
-    CaHl7Control(
-      Id = in.Id,
-      MessageType = in.MessageType,
-      CreateDate = in.CreateDate
-    )
 }

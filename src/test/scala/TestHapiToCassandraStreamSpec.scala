@@ -6,9 +6,13 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.eztier.cassandra.CaCustomCodecProvider
-import com.eztier.hl7mock.types.{CaPatient, CaPatientControl}
+import com.eztier.hl7mock.types.{CaHl7, CaHl7Control, CaPatient, CaPatientControl}
 import com.eztier.stream._
+import com.typesafe.config.ConfigFactory
 import org.scalatest.{FunSpec, Matchers}
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class TestHapiToCassandraStreamSpec extends FunSpec with Matchers {
   implicit val system = ActorSystem("Sys")
@@ -17,7 +21,7 @@ class TestHapiToCassandraStreamSpec extends FunSpec with Matchers {
 
   describe("Hapi to Cassandra Patient Suite") {
     val maybeProvider: Either[String, CaCustomCodecProvider] = try {
-      Right(CaCustomCodecProvider("production.cassandra"))
+      Right(CaCustomCodecProvider("development.cassandra"))
     } catch {
       case e: Exception =>
         val sw = new StringWriter
@@ -30,6 +34,19 @@ class TestHapiToCassandraStreamSpec extends FunSpec with Matchers {
       case Left(x) =>
         logger.error(x)
         throw new Exception(x)
+    }
+
+    it("Should parse raw hl7 message and persist to cassandra hl7 type") {
+      val fixtures = ConfigFactory.load("fixtures")
+      val adtMsg = fixtures.getString("spec-test.another-adt-a01")
+
+      val flow = HapiToCassandraFlowTask[CaHl7, CaHl7Control](provider = provider, keySpace = "dwh")
+      val s = Source.single(adtMsg)
+      val f = flow.runWithRawStringSource(s, 10)
+
+      val res = Await.result(f, 10 seconds)
+
+      res should be (1)
     }
 
     it("Fetch a stream of Hl7 messages with a filter, transform them to CaPatient, and perist them in Cassandra") {

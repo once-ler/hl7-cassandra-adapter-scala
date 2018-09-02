@@ -36,6 +36,13 @@ object CaHl7Implicits extends CaCustomCodecImplicits {
     }
   }
 
+  implicit def fromCaHl7ToCaHl7Control(in: CaHl7) =
+    CaHl7Control(
+      Id = in.Id,
+      MessageType = in.MessageType,
+      CreateDate = in.CreateDate
+    )
+
   implicit def rowToCaHl7(row: Row) = {
     CaHl7(
       ControlId = row.getString(camelToUnderscores("ControlId")),
