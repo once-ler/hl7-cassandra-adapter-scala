@@ -171,7 +171,7 @@ object CaPatientImplicits extends CaCustomCodecImplicits {
         el.DateOfBirth,
         el.EmergencyContacts.asJava,
         el.EmploymentInformation,
-        el.Ethnicity,
+        el.Ethnicity.asJava,
         el.HistoricalIds.asJava,
         el.HomeDeployment,
         el.Id,

@@ -38,7 +38,7 @@ class TestHapiToCassandraStreamSpec extends FunSpec with Matchers {
 
     it("Should parse raw hl7 message and persist to cassandra hl7 type") {
       val fixtures = ConfigFactory.load("fixtures")
-      val adtMsg = fixtures.getString("spec-test.another-adt-a01")
+      val adtMsg = fixtures.getStringList("spec-test.another-adt-a01").toArray.mkString("")
 
       val flow = HapiToCassandraFlowTask[CaHl7, CaHl7Control](provider = provider, keySpace = "dwh")
       val s = Source.single(adtMsg)
@@ -49,26 +49,21 @@ class TestHapiToCassandraStreamSpec extends FunSpec with Matchers {
       res should be (1)
     }
 
-    it("Fetch a stream of Hl7 messages with a filter, transform them to CaPatient, and perist them in Cassandra") {
+    it("Fetch a stream of cassandra hl7 type with a filter, transform them to CaPatient, and perist them in Cassandra") {
       val flow = HapiToCassandraFlowTask[CaPatient, CaPatientControl](provider = provider, keySpace = "dwh")
-      val res = flow.runWithRowFilter("create_date > '2018-07-26 15:00:00' limit 10", 10)
-      println(res)
+      val res = flow.runWithRowFilter("create_date > '1998-07-26 15:00:00' limit 1", 10)
+
+      res should be (1)
     }
-/*
-    it("Fetch a stream of Hl7 messages from an akka Source, transform them to CaPatient, and perist them in Cassandra") {
-      val flow = HapiToCassandraFlowTask(provider = provider, keySpace = "dwh")
-      val s = flow.casFlow.getSourceStream("select id from dwh.ca_hl_7_control where create_date > '2018-05-14 14:00:00' allow filtering", 100)
+
+    it("Fetch a stream of cassandra hl7 type from an akka Source, transform them to CaPatient, and perist them in Cassandra") {
+      val flow = HapiToCassandraFlowTask[CaPatient, CaPatientControl](provider = provider, keySpace = "dwh")
+      val s = flow.casFlow.getSourceStream(s"select id from dwh.ca_hl_7_control where create_date > '1998-05-14 14:00:00' limit 1 allow filtering", 100)
 
       val res = flow.runWithRowSource(s, 10)
+
+      res should be (1)
     }
 
-    it("From a iterable of raw Hl7 messages as a akka Source, transform them to CaPatient, and perist them in Cassandra") {
-      val flow = HapiToCassandraFlowTask(provider = provider, keySpace = "dwh")
-      val msgs = List("", "", "")
-      val s = Source(msgs)
-
-      val res = flow.runWithRawStringSource(s, 10)
-    }
-*/
   }
 }

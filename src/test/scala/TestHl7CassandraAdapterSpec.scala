@@ -82,7 +82,7 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
 
           val patient: CaPatient = row
 
-          println("Simple read")
+          patient shouldBe a [CaPatient]
 
       }
   }

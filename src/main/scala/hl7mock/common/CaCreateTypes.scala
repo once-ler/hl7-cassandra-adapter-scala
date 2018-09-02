@@ -36,6 +36,17 @@ trait CaCreateTypes[A <: CaBase, B <: CaControl] {
 }
 
 object CaCreateTypes {
+  // CaTableDateControl Only.
+  implicit object CreateCaTableDate extends CaCreateTypes[CaTableDate, CaTableDateControl] {
+    override def create(provider: CaCustomCodecProvider)(implicit logger: LoggingAdapter, ec: ExecutionContextExecutor, mat: ActorMaterializer): Either[Exception, Seq[ResultSet]] = {
+      val l = {
+        getCreateStmt[CaTableDateControl]("Id")("CreateDate")(Some("CreateDate"), Some(-1))
+      }.toList
+
+      persist(provider, l)
+    }
+  }
+
   // CaHl7
   implicit object CreateCaHl7 extends CaCreateTypes[CaHl7, CaHl7Control] {
     override def create(provider: CaCustomCodecProvider)(implicit logger: LoggingAdapter, ec: ExecutionContextExecutor, mat: ActorMaterializer): Either[Exception, Seq[ResultSet]] = {

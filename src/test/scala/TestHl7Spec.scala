@@ -7,15 +7,16 @@ import org.joda.time.DateTime
 import org.scalatest.{FunSpec, Matchers}
 import ca.uhn.hl7v2.model.Message
 import ca.uhn.hl7v2.{DefaultHapiContext, HL7Exception}
-import ca.uhn.hl7v2.model.v231.datatype.{CE, TS, XPN}
+import ca.uhn.hl7v2.model.v231.datatype.{CE, ST, TS, XPN}
 import ca.uhn.hl7v2.model.v231.segment.{NK1, PID}
 import ca.uhn.hl7v2.parser.{CanonicalModelClassFactory, EncodingNotSupportedException}
 import ca.uhn.hl7v2.util.Terser
 import ca.uhn.hl7v2.validation.impl.NoValidation
 import com.eztier.hl7mock.types.{CaPatientEmergencyContact, CaPatientIdType, CaPatientNameComponents, CaPatientPhoneInfo}
+import com.typesafe.config.ConfigFactory
 
 class TestHL7Spec extends FunSpec with Matchers {
-
+/*
   val msg = "MSH|^~\\&|HIS|RIH|EKG|EKG|199904140038||ADT^A01||P|2.3\r" +
     "PID|0001|00009874|00001122|A00977|SMITH^JOHN^M|MOM|19581119|F|NOTREAL^LINDA^M|C|564 SPRING ST^^NEEDHAM^MA^02494^US|0002|(818)565-1551|(425)828-3344|E|S|C|0000444444|252-00-4414||||SA|||SA||||NONE|V1|0001|I|D.ER^50A^M110^01|ER|P00055|11B^M011^02|070615^BATMAN^GEORGE^L|555888^NOTREAL^BOB^K^DR^MD|777889^NOTREAL^SAM^T^DR^MD^PHD|ER|D.WT^1A^M010^01|||ER|AMB|02|070615^NOTREAL^BILL^L|ER|000001916994|D||||||||||||||||GDD|WA|NORM|02|O|02|E.IN^02D^M090^01|E.IN^01D^M080^01|199904072124|199904101200|199904101200||||5555112333|||666097^NOTREAL^MANNY^P\r" +
     "PD1|||CHILDREN=S HOSPITAL^^1234^^^^XX~LEXINGTON CLINIC^^1234A^^^^FI|12345^CARE^ PRIMARY^^^DR^MD^^^L^^^DN|||||||03^REMINDER/RECALL - NO CALLS^HL70215|Y\r" +
@@ -36,6 +37,12 @@ class TestHL7Spec extends FunSpec with Matchers {
     "OBX|2|ST|Blood and Tissue Consent^||Y^^^|||||||||20090206103418||||\r" +
     "OBX|3|ST|Additional Blood Consent^||Y^^^|||||||||20090206103418||||\r" +
     "OBX|4|ST|Other Consent^||Y^^^|||||||||20090206103418||||"
+*/
+
+  val fixtures = ConfigFactory.load("fixtures")
+  val msg = fixtures.getStringList("spec-test.another-adt-a01").toArray.mkString("")
+  val msg3 = fixtures.getStringList("spec-test.mdm-t02").toArray.mkString("")
+
 
   describe("HL7 Suite") {
 
@@ -91,7 +98,9 @@ class TestHL7Spec extends FunSpec with Matchers {
       val hpiMsg = hpiMsgMaybe.get
       val originalMsg = hpiMsg.encode()
       val pid3 = hpiMsg.get("PID").asInstanceOf[PID]
-      val a = pid3.getPatientIdentifierList.head.getID
+      val a = pid3.getPatientIdentifierList.head.getID.getValue
+
+      a should be ("6666666")
     }
 
     it("Should parse PID") {

@@ -16,17 +16,22 @@ object HapiToCaHl7Implicits {
     val ts = terser.get("/MSH-7")
     val pid = terser.get("/PID-2")
     val ct = terser.get("/MSH-10")
-    val fmt = new SimpleDateFormat("yyyyMMddHHmmss")
-    val uts = fmt.parse(ts)
+    val fmt = ts.length match {
+      case 14 => "yyyyMMddHHmmss"
+      case 12 => "yyyyMMddHHmm"
+      case 10 => "yyyyMMddHH"
+      case _ => "yyyyMMdd"
+    }
+    val uts = new SimpleDateFormat(fmt).parse(ts)
 
     CaHl7(
       Id = pid,
       Mrn = pid,
-      SendingFacility = fa,
+      SendingFacility = if (fa == null) "" else fa,
       CreateDate = uts,
       Message = in.encode,
       MessageType = ev + "^" + ty,
-      ControlId = ct
+      ControlId = if (ct == null) "" else ct
     )
   }
 }
