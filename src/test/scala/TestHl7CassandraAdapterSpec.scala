@@ -2,16 +2,18 @@ package com.eztier.test.cassandra
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
 import com.datastax.driver.core._
 import com.eztier.adapter.Hl7CassandraAdapter
 import org.scalatest.{Matchers, fixture}
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import com.eztier.cassandra.CaCustomCodecProvider
 import com.eztier.cassandra.CaCommon.camelToUnderscores
 import com.eztier.hl7mock.{CaBase, CaControl, CaCreateTypes, CaPatientImplicits}
 import com.eztier.hl7mock.types._
+import com.typesafe.config.ConfigFactory
 
 class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fixture.ConfigMapFixture {
 
@@ -104,7 +106,7 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
           val qs = insertStatement.getQueryString()
           val stmt0 = new SimpleStatement(insertStatement.toString)
 
-          // "INSERT INTO dwh.ca_table_date_control (id,create_date) VALUES ('CaHl7Control',"
+          stmt0.toString should startWith ("INSERT INTO dwh.ca_table_date_control (id,create_date) VALUES ('CaHl7Control',")
       }
   }
 
@@ -141,11 +143,34 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
       withSearchCriteria {
         cri =>
 
-          val adapter = Hl7CassandraAdapter[CaPatient, CaPatientControl]("production.cassandra", "dwh")
+          val adapter = Hl7CassandraAdapter[CaPatient, CaPatientControl]("development.cassandra", "dwh")
 
-          val res = adapter.flow.runWithRowFilter("create_date > '2018-07-26 15:00:00' limit 10", 10)
+          val res = adapter.flow.runWithRowFilter("create_date > '1998-07-26 15:00:00' limit 10", 10)
 
-          println(res)
+          res should be > 0
       }
   }
+
+  it("Should parse a raw HL7 string and return a cassandra persistence future") {
+    () =>
+      withSearchCriteria {
+        cri =>
+          val fixtures = ConfigFactory.load("fixtures")
+          val msg = fixtures.getStringList("spec-test.mdm-t02").toArray.mkString("")
+
+          val s = Source.single(msg)
+
+          val adapter = Hl7CassandraAdapter[CaPatient, CaPatientControl]("development.cassandra", "dwh")
+
+          // 1 worker count
+          val res = adapter.flow.runWithRawStringSource(s, 1)
+
+          res shouldBe a [Future[_]]
+
+          val count = Await.result(res, 5 seconds)
+
+          count should be (1)
+      }
+  }
+
 }
