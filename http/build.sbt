@@ -23,6 +23,8 @@ lazy val commonSettings = Seq(
   )
 )
 
+lazy val settings = commonSettings
+
 val akka = "com.typesafe.akka"
 val akkaHttpV = "10.1.0"
 
@@ -44,10 +46,19 @@ val akkaHttpCors = "ch.megard" %% "akka-http-cors" % "0.3.0"
 
 val hapiV231 = "ca.uhn.hapi" % "hapi-structures-v231" % "2.3"
 
+val tsConfig = "com.typesafe" % "config" % "1.3.3"
+
 lazy val http = (project in file(".")).
-  settings(commonSettings: _*).
   settings(
-    name := "test-scalaxb",
+    name := "http-hl7-cassandra",
+    settings,
+    assemblySettings,
+    Seq(
+      javaOptions ++= Seq(
+        "-Xms1G",
+        "-Xmx3G"
+      )
+    ),
     libraryDependencies ++= Seq(
       scalaTest,
       logback,
@@ -58,6 +69,24 @@ lazy val http = (project in file(".")).
       akkaHttpCore,
       akkaHttpSprayJson,
       akkaHttpTestkit,
-      hapiV231
+      hapiV231,
+      tsConfig
     )
   )
+
+// Skip tests for assembly  
+lazy val assemblySettings = Seq(
+  assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
+  
+  assemblyMergeStrategy in assembly := {
+    case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
+    case PathList(ps @ _*) if ps.last endsWith ".html" => MergeStrategy.first
+    case x if x.endsWith("io.netty.versions.properties") => MergeStrategy.first
+    case "application.conf"                            => MergeStrategy.concat
+    case "logback.xml"                            => MergeStrategy.first
+    case x =>
+      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      oldStrategy(x)
+  },
+  test in assembly := {}
+)
