@@ -72,6 +72,21 @@ case class CaPatientEmploymentInformation(
   PhoneNumbers: Seq[CaPatientPhoneInfo] = Seq()
 ) extends CaUdt
 
+case class CaPatientRace(
+  Code: String = "",
+  Display: String = ""
+) extends CaUdt
+
+case class CaPatientEthnicity(
+  Code: String = "",
+  Display: String = ""
+) extends CaUdt
+
+case class CaPatientGender(
+  Code: String = "",
+  Display: String = ""
+) extends CaUdt
+
 case class CaPatient(
   Addresses: Seq[CaPatientAddress] = Seq(),
   Aliases: Seq[String] = Seq(),
@@ -81,8 +96,8 @@ case class CaPatient(
   DateOfBirth: Date = new DateTime(1900, 1, 1, 0, 0, 0).toDate,
   EmergencyContacts: Seq[CaPatientEmergencyContact] = Seq(),
   EmploymentInformation: CaPatientEmploymentInformation = CaPatientEmploymentInformation(),
-  Ethnicity: Seq[String] = Seq(),
-  Gender: String = "",
+  Ethnicity: Seq[CaPatientEthnicity] = Seq(),
+  Gender: CaPatientGender = CaPatientGender(),
   HistoricalIds: Seq[CaPatientIdType] = Seq(),
   HomeDeployment: String = "",
   Id: String = "",
@@ -92,7 +107,7 @@ case class CaPatient(
   Name: String = "",
   NameComponents: Seq[CaPatientNameComponents] = Seq(),
   NationalIdentifier: String = "",
-  Race: Seq[String] = Seq(),
+  Race: Seq[CaPatientRace] = Seq(),
   Rank: String = "",
   Status: String = ""
 ) extends CaTbl with CaBase

@@ -91,7 +91,7 @@ object CaPatientImplicits extends CaCustomCodecImplicits {
       DateOfBirth = row.getTimestamp(camelToUnderscores("DateOfBirth")),
       EmergencyContacts = row.getList(camelToUnderscores("EmergencyContacts"), classOf[CaPatientEmergencyContact]).asScala,
       EmploymentInformation = row.get(camelToUnderscores("EmploymentInformation"), classOf[CaPatientEmploymentInformation]),
-      Ethnicity = row.getList(camelToUnderscores("Ethnicity"), classOf[String]).asScala,
+      Ethnicity = row.getList(camelToUnderscores("Ethnicity"), classOf[CaPatientEthnicity]).asScala,
       HistoricalIds = row.getList(camelToUnderscores("HistoricalIds"), classOf[CaPatientIdType]).asScala,
       HomeDeployment = row.getString(camelToUnderscores("HomeDeployment")),
       Id = row.getString(camelToUnderscores("Id")),
@@ -101,9 +101,9 @@ object CaPatientImplicits extends CaCustomCodecImplicits {
       Name = row.getString(camelToUnderscores("Name")),
       NameComponents = row.getList(camelToUnderscores("NameComponents"), classOf[CaPatientNameComponents]).asScala,
       NationalIdentifier = row.getString(camelToUnderscores("NationalIdentifier")),
-      Race = row.getList(camelToUnderscores("Race"), classOf[String]).asScala,
+      Race = row.getList(camelToUnderscores("Race"), classOf[CaPatientRace]).asScala,
       Rank = row.getString(camelToUnderscores("Rank")),
-      Gender = row.getString(camelToUnderscores("Gender")),
+      Gender = row.get(camelToUnderscores("Gender"), classOf[CaPatientGender]),
       Status = row.getString(camelToUnderscores("Status"))
     )
 
@@ -132,15 +132,15 @@ object CaPatientImplicits extends CaCustomCodecImplicits {
       CreateDate = in.CreateDate,
       City = address.City,
       DateOfBirth = in.DateOfBirth,
-      Email = address.Email.map(a => a.Email).filter(a => a.size > 0).mkString(","),
-      Ethnicity = in.Ethnicity.mkString(","),
-      Gender = in.Gender,
+      Email = address.Email.map(_.Email).filter(_.size > 0).mkString(","),
+      Ethnicity = in.Ethnicity.map(_.Code).filter(_.size > 0).mkString(","),
+      Gender = in.Gender.Code,
       Id = in.Id,
       Mrn = in.Mrn,
       Name = in.Name,
-      PhoneNumber = address.PhoneNumbers.map(a => a.Number).filter(a => a != "(null) null").mkString(","),
+      PhoneNumber = address.PhoneNumbers.map(_.Number).filter(a => a != "(null) null").mkString(","),
       PostalCode = address.PostalCode,
-      Race = in.Race.mkString(","),
+      Race = in.Race.map(_.Code).filter(_.size > 0).mkString(","),
       StateProvince = address.State,
       Street = address.Street.mkString(",")
     )
@@ -229,6 +229,34 @@ object CaPatientImplicits extends CaCustomCodecImplicits {
     override def toUDTValue(value: CaPatientIdType): UDTValue =
       if (value == null) null
       else userType.newValue.setString("id", value.Id).setString("type", value.Type)
+  }
+
+  // CaPatientEthnicity
+  case class CaPatientEthnicityCodec(innerCodec: TypeCodec[UDTValue])
+    extends TypeCodec[CaPatientEthnicity](innerCodec.getCqlType, TypeToken.of(classOf[CaPatientEthnicity]))
+      with CaCodec[CaPatientEthnicity] {
+
+    override def toCaClass(value: UDTValue) =
+      if (value == null) null
+      else CaPatientEthnicity(Code = value.getString("code"), Display = value.getString("display"))
+
+    override def toUDTValue(value: CaPatientEthnicity): UDTValue =
+      if (value == null) null
+      else userType.newValue.setString("code", value.Code).setString("display", value.Display)
+  }
+
+  // CaPatientRace
+  case class CaPatientRaceCodec(innerCodec: TypeCodec[UDTValue])
+    extends TypeCodec[CaPatientRace](innerCodec.getCqlType, TypeToken.of(classOf[CaPatientRace]))
+      with CaCodec[CaPatientRace] {
+
+    override def toCaClass(value: UDTValue) =
+      if (value == null) null
+      else CaPatientRace(Code = value.getString("code"), Display = value.getString("display"))
+
+    override def toUDTValue(value: CaPatientRace): UDTValue =
+      if (value == null) null
+      else userType.newValue.setString("code", value.Code).setString("display", value.Display)
   }
 
   // CaPatientNameComponents

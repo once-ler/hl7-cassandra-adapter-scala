@@ -9,6 +9,14 @@ import ca.uhn.hl7v2.parser.{CanonicalModelClassFactory, EncodingNotSupportedExce
 import ca.uhn.hl7v2.validation.impl.NoValidation
 
 object Hapi {
+  implicit class WrapException[A <: Exception](e: A) {
+    def toStackTraceString: String = {
+      val sw = new StringWriter
+      e.printStackTrace(new PrintWriter(sw))
+      sw.toString
+    }
+  }
+
   private val pipeParser = {
     val hapiContext = new DefaultHapiContext()
     hapiContext.setModelClassFactory(new CanonicalModelClassFactory("2.3.1"))
@@ -22,15 +30,11 @@ object Hapi {
       Some(a)
     } catch {
       case e: EncodingNotSupportedException => {
-        val sw = new StringWriter
-        e.printStackTrace(new PrintWriter(sw))
-        logger.error(sw.toString)
+        logger.error(e.toStackTraceString)
         None
       }
       case e1: HL7Exception => {
-        val sw = new StringWriter
-        e1.printStackTrace(new PrintWriter(sw))
-        logger.error(sw.toString)
+        logger.error(e1.toStackTraceString)
         None
       }
     }

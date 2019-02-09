@@ -15,7 +15,7 @@ object HapiToCaPatientImplicits {
 
     CaPatient(
       CreateDate = header.CreateDate,
-      Ethnicity = pid toEthnicGroup,
+      Ethnicity = pid.toEthnicGroup,
       Race = pid toRace,
       Addresses = pid toCaPatientAddress,
       Ids = pid toCaPatientIdType,
@@ -34,15 +34,15 @@ object HapiToCaPatientImplicits {
   }
 
   implicit class WrapPID(in: PID) {
-    def toEthnicGroup(): Seq[String] = in.getEthnicGroup.map(a => a.getIdentifier.getValueOrEmpty)
+    def toEthnicGroup(): Seq[CaPatientEthnicity] = in.getEthnicGroup.map(a => CaPatientEthnicity(a.getIdentifier.getValueOrEmpty, a.getIdentifier.getValueOrEmpty))
 
-    def toRace(): Seq[String] = in.getRace.map(a => a.getIdentifier.getValueOrEmpty)
+    def toRace(): Seq[CaPatientRace] = in.getRace.map(a => CaPatientRace(a.getIdentifier.getValueOrEmpty, a.getIdentifier.getValueOrEmpty))
 
     def toMrn(): String = in.getPatientIdentifierList.headOption.getOrElse(new CX(in.getMessage)).getID.getValueOrEmpty
 
     def toFullName(): String = fromXPNToFullName(in.getPatientName.headOption.getOrElse(new XPN(in.getMessage)))
 
-    def toGender(): String = in.getSex.getValueOrEmpty
+    def toGender(): CaPatientGender = CaPatientGender(in.getSex.getValueOrEmpty, in.getSex.getValueOrEmpty)
 
     def toDateOfBirth(): Date = in.getDateTimeOfBirth.getTimeOfAnEvent.getValueAsDate
 
