@@ -72,6 +72,9 @@ object CaCreateTypes {
         getCreateStmt[CaPatientNameComponents] ++
         getCreateStmt[CaPatientAddress] ++
         getCreateStmt[CaPatientCareTeamMember] ++
+        getCreateStmt[CaPatientEthnicity] ++
+        getCreateStmt[CaPatientRace] ++
+        getCreateStmt[CaPatientGender] ++
         getCreateStmt[CaPatient]("Id")("CreateDate")(Some("CreateDate"), Some(-1)) ++
         getCreateStmt[CaPatientControl]("Id")()(None, None)
       }.toList

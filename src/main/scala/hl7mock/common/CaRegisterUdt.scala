@@ -29,6 +29,10 @@ object CaRegisterUdt {
         .register[CaPatientCareTeamMember]
         .register[CaPatientEmergencyContact]
         .register[CaPatientEmploymentInformation]
+        .register[CaPatientEthnicity]
+        .register[CaPatientRace]
+        .register[CaPatientGender]
+
     }
   }
 }

@@ -46,6 +46,9 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
             .register[CaPatientCareTeamMember]
             .register[CaPatientEmergencyContact]
             .register[CaPatientEmploymentInformation]
+            .register[CaPatientEthnicity]
+            .register[CaPatientRace]
+            .register[CaPatientGender]
 
           println("Registered")
 
@@ -55,10 +58,13 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
           val qs = insertStatement.getQueryString()
           val stmt0 = new SimpleStatement(insertStatement.toString)
 
+          val fut0 = provider.insertAsync(insertStatement)
+          val res = Await.result(fut0, 10 seconds)
+
           println("Insert Statement")
 
-          /*
           // TODO: Need to allow user to provide the bounded fields instead of automatically generating it in lexiconal order.
+          /*
           // preparedStatement provided by user.
           implicit val session = provider.session
           val preparedStatement = getPreparedStatement("dwh", el)
@@ -69,10 +75,10 @@ class TestHl7CassandraAdapterSpec extends fixture.FunSpec with Matchers with fix
           import scala.concurrent.duration.Duration
           val fut0 = provider.insertAsync(boundStatement)
           val res = Await.result(fut0, Duration.Inf)
+          */
 
           println("Binder")
 
-          */
           val stmt1 = new SimpleStatement(s"select * from dwh.${camelToUnderscores(el.getClass.getSimpleName)}").setFetchSize(20)
 
           val fut = provider.readAsync(stmt1)

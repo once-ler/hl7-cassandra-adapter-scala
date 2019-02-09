@@ -23,7 +23,9 @@ object CaPatientImplicits extends CaCustomCodecImplicits {
       case a if a == typeOf[CaPatientCareTeamMember]=> CaPatientCareTeamMemberCodec(innerCodec)
       case a if a == typeOf[CaPatientEmergencyContact]=> CaPatientEmergencyContactCodec(innerCodec)
       case a if a == typeOf[CaPatientEmploymentInformation]=> CaPatientEmploymentInformationCodec(innerCodec)
-
+      case a if a == typeOf[CaPatientEthnicity] => CaPatientEthnicityCodec(innerCodec)
+      case a if a == typeOf[CaPatientRace] => CaPatientRaceCodec(innerCodec)
+      case a if a == typeOf[CaPatientGender] => CaPatientGenderCodec(innerCodec)
       case _ => CaDefaultUdtCodec(innerCodec)
     }
   }
@@ -255,6 +257,20 @@ object CaPatientImplicits extends CaCustomCodecImplicits {
       else CaPatientRace(Code = value.getString("code"), Display = value.getString("display"))
 
     override def toUDTValue(value: CaPatientRace): UDTValue =
+      if (value == null) null
+      else userType.newValue.setString("code", value.Code).setString("display", value.Display)
+  }
+
+  // CaPatientGender
+  case class CaPatientGenderCodec(innerCodec: TypeCodec[UDTValue])
+    extends TypeCodec[CaPatientGender](innerCodec.getCqlType, TypeToken.of(classOf[CaPatientGender]))
+      with CaCodec[CaPatientGender] {
+
+    override def toCaClass(value: UDTValue) =
+      if (value == null) null
+      else CaPatientGender(Code = value.getString("code"), Display = value.getString("display"))
+
+    override def toUDTValue(value: CaPatientGender): UDTValue =
       if (value == null) null
       else userType.newValue.setString("code", value.Code).setString("display", value.Display)
   }
