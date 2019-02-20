@@ -14,7 +14,7 @@ object HapiToCaHl7Implicits {
     val ev = terser.get("/.MSH-9-1")
     val ty = terser.get("/MSH-9-2")
     val ts = terser.get("/MSH-7")
-    val pid = terser.get("/PID-2")
+    val pid = try { terser.get("/PID-2") } catch {case e: Exception => "UNKNOWN"}
     val ct = terser.get("/MSH-10")
     val fmt = ts.length match {
       case 14 => "yyyyMMddHHmmss"
