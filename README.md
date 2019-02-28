@@ -3,5 +3,5 @@
 ### Installation
 
 ```
-libraryDependencies += "com.eztier" %% "hl7-cassandra-adapter-scala" % "0.3.12"
+libraryDependencies += "com.eztier" %% "hl7-cassandra-adapter-scala" % "0.3.13"
 ```

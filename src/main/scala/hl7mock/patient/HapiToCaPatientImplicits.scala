@@ -11,21 +11,26 @@ import com.eztier.hl7mock.types._
 object HapiToCaPatientImplicits {
   implicit def fromMessageToCaPatient(in: Message): CaPatient = {
     val header: CaHl7 = in
-    val pid = in.get("PID").asInstanceOf[PID]
 
-    CaPatient(
-      CreateDate = header.CreateDate,
-      Ethnicity = pid.toEthnicGroup,
-      Race = pid toRace,
-      Addresses = pid toCaPatientAddress,
-      Ids = pid toCaPatientIdType,
-      Id = pid toMrn,
-      Mrn = pid toMrn,
-      NameComponents = pid toCaPatientNameComponents,
-      Name = pid toFullName,
-      Gender = pid toGender,
-      DateOfBirth = pid toDateOfBirth
-    )
+    header.Id match {
+      case a if a == "UNKNOWN" => CaPatient(Id = a)
+      case _ =>
+        val pid = in.get("PID").asInstanceOf[PID]
+
+        CaPatient(
+          CreateDate = header.CreateDate,
+          Ethnicity = pid.toEthnicGroup,
+          Race = pid toRace,
+          Addresses = pid toCaPatientAddress,
+          Ids = pid toCaPatientIdType,
+          Id = pid toMrn,
+          Mrn = pid toMrn,
+          NameComponents = pid toCaPatientNameComponents,
+          Name = pid toFullName,
+          Gender = pid toGender,
+          DateOfBirth = pid toDateOfBirth
+        )
+    }
   }
 
   implicit def fromXPNToFullName(in: XPN): String = {
